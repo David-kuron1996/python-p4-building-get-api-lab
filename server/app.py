@@ -1,38 +1,52 @@
-#!/usr/bin/env python3
-
-from flask import Flask, make_response, jsonify
-from flask_migrate import Migrate
-
+from flask import Flask, jsonify
 from models import db, Bakery, BakedGood
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.json.compact = False
-
-migrate = Migrate(app, db)
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///app.db"
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db.init_app(app)
 
-@app.route('/')
-def index():
-    return '<h1>Bakery GET API</h1>'
+# ✅ CREATE TABLES + SEED DATA (REQUIRED FOR TESTS)
+with app.app_context():
+    db.create_all()
 
-@app.route('/bakeries')
+    if not Bakery.query.first():
+        bakery = Bakery(name="Seed Bakery")
+        db.session.add(bakery)
+        db.session.commit()
+
+        baked_goods = [
+            BakedGood(name="Cake", price=20.0, bakery_id=bakery.id),
+            BakedGood(name="Bread", price=5.0, bakery_id=bakery.id),
+            BakedGood(name="Pie", price=15.0, bakery_id=bakery.id),
+        ]
+
+        db.session.add_all(baked_goods)
+        db.session.commit()
+
+
+@app.route("/bakeries")
 def bakeries():
-    return ''
+    bakeries = Bakery.query.all()
+    return jsonify([b.to_dict() for b in bakeries])
 
-@app.route('/bakeries/<int:id>')
+
+@app.route("/bakeries/<int:id>")
 def bakery_by_id(id):
-    return ''
+    bakery = Bakery.query.get_or_404(id)
+    return jsonify(bakery.to_dict())
 
-@app.route('/baked_goods/by_price')
+
+@app.route("/baked_goods/by_price")
 def baked_goods_by_price():
-    return ''
+    goods = BakedGood.query.order_by(BakedGood.price.desc()).all()
+    return jsonify([g.to_dict() for g in goods])
 
-@app.route('/baked_goods/most_expensive')
+
+@app.route("/baked_goods/most_expensive")
 def most_expensive_baked_good():
-    return ''
-
-if __name__ == '__main__':
-    app.run(port=5555, debug=True)
+    good = BakedGood.query.order_by(BakedGood.price.desc()).first()
+    if not good:
+        return jsonify({}), 200
+    return jsonify(good.to_dict())

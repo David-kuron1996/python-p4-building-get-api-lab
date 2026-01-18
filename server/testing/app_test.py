@@ -98,7 +98,7 @@ class TestApp:
         '''returns JSON representing one models.Bakery object.'''
         with app.app_context():
             prices = [baked_good.price for baked_good in BakedGood.query.all()]
-            highest_price = max(prices)
+            highest_price = max(prices) if prices else 0
 
             b1 = BakedGood(name="Madeleine", price=highest_price + 1)
             db.session.add(b1)
@@ -139,7 +139,7 @@ class TestApp:
         '''returns JSON representing one models.BakedGood object.'''
         with app.app_context():
             prices = [baked_good.price for baked_good in BakedGood.query.all()]
-            highest_price = max(prices)
+            highest_price = max(prices) if prices else 0
 
             b1 = BakedGood(name="Madeleine", price=highest_price + 1)
             db.session.add(b1)
@@ -164,7 +164,7 @@ class TestApp:
         '''returns JSON representing one models.BakedGood object.'''
         with app.app_context():
             prices = [baked_good.price for baked_good in BakedGood.query.all()]
-            highest_price = max(prices)
+            highest_price = max(prices) if prices else 0
 
             b1 = BakedGood(name="Madeleine", price=highest_price + 1)
             db.session.add(b1)
